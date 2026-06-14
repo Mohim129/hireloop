@@ -2,13 +2,31 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut, useSession } from "@/lib/auth-client";
+
+import { Button } from "@heroui/react";
+import toast, { Toaster } from "react-hot-toast";
 
 function NavBar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
-
+  const { data: session, isPending } = useSession();
+  const user = session?.user;
   // Helper function to check if a route is currently active
   const isActive = (path) => pathname === path;
+
+  const handleSignOut =async () => {
+    await signOut({
+  fetchOptions: {
+    onSuccess: () => {
+      toast.success("Signed out successfully!");
+      // router.push("/login"); // redirect to login page
+    },
+  },}
+);
+
+    
+  }
 
   // Dynamic class generator for Desktop Links
   const getNavLinkClass = (path) =>
@@ -46,7 +64,7 @@ function NavBar() {
             {/* Nav Links Capsule */}
             <div className="flex items-center gap-6 rounded-full bg-[#18181B] px-6 py-2.5 border border-neutral-800/60 shadow-inner">
               <Link href="/jobs" className={getNavLinkClass("/jobs")}>
-                Browse Jobs
+                Jobs
               </Link>
               <Link href="/company" className={getNavLinkClass("/company")}>
                 Company
@@ -55,9 +73,25 @@ function NavBar() {
                 Pricing
               </Link>
               <span className="h-4 w-[1px] bg-neutral-700" aria-hidden="true" />
-              <Link href="/sign-in" className={getNavLinkClass("/sign-in")}>
-                Sign In
-              </Link>
+              {user ? (
+                <>
+                  {user.name}
+                  <Button
+                    variant="ghost"
+                    onClick={handleSignOut}
+                    className="w-full"
+                  >
+                    Sign Out
+                  </Button>
+            
+                  
+
+                </>
+              ) : (
+                <Link href="/signin" className={getNavLinkClass("/signin")}>
+                  Sign In
+                </Link>
+              )}
             </div>
 
             {/* CTA Button */}
@@ -136,13 +170,26 @@ function NavBar() {
 
             <hr className="my-3 border-neutral-800" />
 
-            <Link
-              href="/sign-in"
-              onClick={() => setIsMenuOpen(false)}
-              className={getMobileNavLinkClass("/sign-in")}
-            >
-              Sign In
-            </Link>
+            {user ? (
+              <>
+                {user.name}
+                <Button
+                  variant="ghost"
+                  onClick={() => signOut()}
+                  className="w-full"
+                >
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <Link
+                href="/signin"
+                onClick={() => setIsMenuOpen(false)}
+                className={getMobileNavLinkClass("/signin")}
+              >
+                Sign In
+              </Link>
+            )}
             <Link
               href="/get-started"
               onClick={() => setIsMenuOpen(false)}
